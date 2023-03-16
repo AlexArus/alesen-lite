@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alesen Lite</title>
+    <link rel="canonical" href="https://arussoft.github.io/alesen-lite/" />
+    <link rel="manifest" href="/alesen-lite/manifest.json" />
+    <link rel="icon" type="image/svg+xml" href="/alesen-lite/icon.svg" />
+    <script src="./main.js" async type="module"></script>
+    <style>
+        :root {
+            --gap: 4px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            gap: var(--gap);
+            padding: var(--gap);
+        }
+
+        main {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: var(--gap);
+            overflow: auto;
+        }
+
+        article {
+            display: flex;
+            align-content: stretch;
+            flex-direction: column;
+            gap: var(--gap);
+        }
+
+        article pre {
+            display: inline-block;
+            flex-grow: 1;
+            max-height: 250px;
+            overflow-y: auto;
+            white-space: break-spaces;
+            margin: 0;
+            padding: var(--gap);
+        }
+
+        article footer {
+            display: none;
+        }
+
+        article[selected] footer {
+            display: flex;
+            gap: var(--gap);
+        }
+
+        article.important {
+            font-weight: bold;
+        }
+
+        article.archived {
+            color: gray;
+        }
+
+        dialog[open] {
+            display: flex;
+            flex-direction: column;
+            gap: var(--gap);
+        }
+    </style>
+</head>
+
+<body>
+    <main id="item-list">
+        <!-- TODO: try pages instead of scroll - left old, right new, like a book -->
+    </main>
+
+    <footer>
+        <nav>
+            <button id="btn-add">Add</button>
+            <button id="btn-options">Options</button>
+            <select id="slt-collections">
+                <option disabled selected>Collections</option>
+            </select>
+        </nav>
+    </footer>
+
+    <dialog id="dlg-options">
+        <button id="btn-clear">Clear</button>
+        <button id="btn-export">Export</button>
+        <button id="btn-import">Import</button>
+        <button id="btn-options-close">Close</button>
+    </dialog>
+
+    <dialog id="dlg-clear-confirm">
+        <strong>Remove all notes?</strong>
+        <button id="btn-clear-confirm-ok">Ok</button>
+        <button id="btn-clear-confirm-cancel">Cancel</button>
+    </dialog>
+
+    <dialog id="dlg-message">
+        <strong id="txt-message"></strong>
+        <button id="btn-message-close">Close</button>
+    </dialog>
+</body>
+
+<script>
+    window.addEventListener("load", () => {
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("/alesen-lite/sw.js", {
+                scope: "/alesen-lite/",
+            });
+        }
+    });
+</script>
+
+</html>
