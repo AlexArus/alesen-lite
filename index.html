@@ -13,6 +13,12 @@
     <style>
         :root {
             --gap: 4px;
+            --color: black;
+            --background: white;
+        }
+        body.dark-theme {
+            --color: white;
+            --background: black;
         }
 
         * {
@@ -28,8 +34,11 @@
         body {
             display: flex;
             flex-direction: column;
+            transition: all ease-in-out 700ms;
             gap: var(--gap);
             padding: var(--gap);
+            color: var(--color);
+            background-color: var(--background);
         }
 
         main {
@@ -98,6 +107,7 @@
     </footer>
 
     <dialog id="dlg-options">
+        <button id="btn-toggle-theme"></button>
         <button id="btn-clear">Clear</button>
         <button id="btn-export">Export</button>
         <button id="btn-import">Import</button>

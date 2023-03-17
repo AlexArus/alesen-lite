@@ -6,6 +6,7 @@ const prefix = 'item';
 const delimiter = '-';
 const idKey = 'id';
 const orderKey = 'order';
+const settingsKey = 'settings';
 const typeEnum = {
     /** @type {'normal'} */
     normal: 'normal',
@@ -33,6 +34,11 @@ const items = [];
 /** @type {Map<number, Item>} */
 const itemsMap = new Map();
 
+const settings = {
+    /** @type {'light' | 'dark'} */
+    theme: 'light',
+}
+
 // Elements --------------------------------------------------------------------
 
 /**
@@ -58,6 +64,7 @@ const getDialogById = id => {
 const main = getById('item-list');
 const btnAdd = getById('btn-add');
 const sltCollections = getById('slt-collections');
+const btnToggleTheme = getById('btn-toggle-theme');
 const btnClear = getById('btn-clear');
 const btnOptions = getById('btn-options');
 const btnExport = getById('btn-export');
@@ -240,6 +247,8 @@ const applyCollectionFilter = () => {
 
 const action = {
     initialize: () => {
+        action.loadSettings();
+        action.applySettings();
         action.loadItemsFromLocalStorage();
         action.setupHanlders();
     },
@@ -248,6 +257,7 @@ const action = {
         onClick(btnAdd, () => action.addItem());
         onClick(btnOptions, action.showOptions)
         onClick(btnOptionsClose, () => dlgOptions.close());
+        onClick(btnToggleTheme, action.toggleTheme);
         onClick(btnClear, () => dlgClearConfirm.showModal());
         onClick(btnClearConfirmOk, action.clearItems);
         onClick(btnClearConfirmCancel, () => dlgClearConfirm.close());
@@ -258,6 +268,27 @@ const action = {
             selectedCollection = ( /** @type {HTMLSelectElement} */ (e.target)).value ?? null;
             applyCollectionFilter();
         })
+    },
+
+    loadSettings: () => {
+        const rawSettings = localStorage.getItem(settingsKey);
+        if (rawSettings) {
+            const newSettings = JSON.parse(rawSettings);
+            Object.keys(settings).forEach(key => {
+                const value = newSettings[key];
+                if (value) {
+                    settings[key] = value;
+                }
+            })
+        }
+    },
+    saveSettings: () => {
+        localStorage.setItem(settingsKey, JSON.stringify(settings));
+    },
+    applySettings: () => {
+        const isDarkTheme = settings.theme === 'dark';
+        document.body.classList.toggle('dark-theme', isDarkTheme);
+        btnToggleTheme.innerText = isDarkTheme ? 'Light theme' : 'Dark theme';
     },
 
     loadItemsFromLocalStorage: () => {
@@ -468,7 +499,13 @@ const action = {
     showMessage: message => {
         txtMessage.innerText = message;
         dlgMessage.showModal();
-    }
+    },
+
+    toggleTheme: () => {
+        settings.theme = settings.theme === 'dark' ? 'light' : 'dark';
+        action.applySettings();
+        action.saveSettings();
+    },
 }
 
 // Initialization --------------------------------------------------------------
