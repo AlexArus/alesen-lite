@@ -10,8 +10,8 @@ const settingsKey = 'settings';
 const typeEnum = {
     /** @type {'normal'} */
     normal: 'normal',
-    /** @type {'important'} */
-    important: 'important',
+    /** @type {'favorite'} */
+    favorite: 'favorite',
     /** @type {'archived'} */
     archived: 'archived',
 }
@@ -19,7 +19,7 @@ const typeEnum = {
 // State -----------------------------------------------------------------------
 
 /**
- * @typedef {('normal' | 'important' | 'archived')} ItemType
+ * @typedef {('normal' | 'favorite' | 'archived')} ItemType
  * 
  * @typedef {Object} Item
  * @property {number} id
@@ -69,8 +69,11 @@ const btnClear = getById('btn-clear');
 const btnOptions = getById('btn-options');
 const btnExport = getById('btn-export');
 const btnImport = getById('btn-import');
+const btnAbout = getById('btn-about');
 const btnOptionsClose = getById('btn-options-close')
+const btnAboutClose = getById('btn-about-close');
 const dlgOptions = getDialogById('dlg-options');
+const dlgAbout = getDialogById('dlg-about');
 const dlgClearConfirm = getDialogById('dlg-clear-confirm');
 const btnClearConfirmOk = getById('btn-clear-confirm-ok');
 const btnClearConfirmCancel = getById('btn-clear-confirm-cancel');
@@ -127,27 +130,30 @@ const updateItemType = (item) => {
     itemElem.classList.remove(itemElem.classList[0]);
     itemElem.classList.add(item.type);
 
-    const btnImportant = getById('btnImportant' + delimiter + item.id);
-    btnImportant.innerText = item.type === typeEnum.important
-        ? 'Not Important' : 'Important';
+    const btnFavorite = getById('btn-favorite' + delimiter + item.id);
+    btnFavorite.innerText = item.type === typeEnum.important
+        ? 'Unfavorite' : 'Favorite';
 
-    const btnArchive = getById('btnArchive' + delimiter + item.id);
+    const btnArchive = getById('btn-archive' + delimiter + item.id);
     btnArchive.innerText = item.type === typeEnum.archived
         ? 'Unarchive' : 'Archive';
 }
 
-const itemImportantHandler = e => {
+/** @param {Event} e */
+const itemFavoriteHandler = e => {
     const item = getItemFromEvent(e);
-    const isImportant = item.type === typeEnum.important;
-    const type = isImportant ? typeEnum.normal : typeEnum.important;
+    const isFavorite = item.type === typeEnum.favorite;
+    const type = isFavorite ? typeEnum.normal : typeEnum.favorite;
     action.updateItemType(item.id, type);
 }
+/** @param {Event} e */
 const itemArchiveHandler = e => {
     const item = getItemFromEvent(e);
     const isArchived = item.type === typeEnum.archived;
     const type = isArchived ? typeEnum.normal : typeEnum.archived;
     action.updateItemType(item.id, type);
 }
+/** @param {Event} e */
 const itemRemoveHandler = e => {
     const id = getItemFromEvent(e).id;
     action.removeItem(id);
@@ -159,6 +165,7 @@ let selectedCollection = null;
 /** @type {HTMLElement | null} */
 let selectedItem = null;
 
+/** @param {Event} e */
 const itemFocuseInHandler = e => {
     const itemEl = getItemElFromEvent(e);
     if (itemEl && itemEl !== selectedItem) {
@@ -187,16 +194,22 @@ const addItemEl = item => {
     preEl.setAttribute('contenteditable', 'plaintext-only');
     preEl.addEventListener('input', itemInputHandler);
     const footerEl = document.createElement('footer');
-    const btnImportantEl = document.createElement('button');
-    btnImportantEl.id = 'btnImportant' + delimiter + id;
-    onClick(btnImportantEl, itemImportantHandler)
+    const btnFavoriteEl = document.createElement('button');
+    btnFavoriteEl.id = 'btn-favorite' + delimiter + id;
+    btnFavoriteEl.title = 'Toggle note favorite';
+    btnFavoriteEl.classList.add('favorite');
+    onClick(btnFavoriteEl, itemFavoriteHandler)
     const btnArchiveEl = document.createElement('button');
-    btnArchiveEl.id = 'btnArchive' + delimiter + id;
+    btnArchiveEl.id = 'btn-archive' + delimiter + id;
+    btnArchiveEl.title = 'Toggle note archive state';
+    btnArchiveEl.classList.add('archived');
     onClick(btnArchiveEl, itemArchiveHandler)
     const btnRemoveEl = document.createElement('button');
+    btnRemoveEl.title = 'Remove note';
+    btnRemoveEl.classList.add('remove');
     btnRemoveEl.innerText = 'Remove';
     onClick(btnRemoveEl, itemRemoveHandler)
-    footerEl.appendChild(btnImportantEl);
+    footerEl.appendChild(btnFavoriteEl);
     footerEl.appendChild(btnArchiveEl);
     footerEl.appendChild(btnRemoveEl);
     itemEl.appendChild(preEl);
@@ -243,6 +256,21 @@ const applyCollectionFilter = () => {
     }
 }
 
+/** @param {MouseEvent} e */
+const dialogClickOutside = e => {
+    if(!e.target) return;
+
+    const target = /** @type {HTMLDialogElement} */ (e.target);
+    const rect = target.getBoundingClientRect();
+    const x = e.clientX;
+    const y = e.clientY;
+    const isClickInside = 
+        rect.top <= y && y <= rect.top + rect.height &&
+        rect.left <= x && x <= rect.left + rect.width;
+
+    if (!isClickInside) target.close();
+}
+
 // Actions ---------------------------------------------------------------------
 
 const action = {
@@ -255,7 +283,7 @@ const action = {
 
     setupHanlders: () => {
         onClick(btnAdd, () => action.addItem());
-        onClick(btnOptions, action.showOptions)
+        onClick(btnOptions, () => dlgOptions.showModal());
         onClick(btnOptionsClose, () => dlgOptions.close());
         onClick(btnToggleTheme, action.toggleTheme);
         onClick(btnClear, () => dlgClearConfirm.showModal());
@@ -264,6 +292,12 @@ const action = {
         onClick(btnExport, action.export);
         onClick(btnImport, action.import);
         onClick(btnMessageClose, () => dlgMessage.close());
+        onClick(btnAbout, () => dlgAbout.showModal());
+        onClick(btnAboutClose, () => dlgAbout.close());
+        onClick(dlgOptions, dialogClickOutside);
+        onClick(dlgClearConfirm, dialogClickOutside);
+        onClick(dlgMessage, dialogClickOutside);
+        onClick(dlgAbout, dialogClickOutside);
         sltCollections.addEventListener('change', e => {
             selectedCollection = ( /** @type {HTMLSelectElement} */ (e.target)).value ?? null;
             applyCollectionFilter();
@@ -446,8 +480,6 @@ const action = {
         itemsMap.clear();
     },
 
-    showOptions: () => dlgOptions.showModal(),
-
     export: () => {
         const date = new Date();
         const formatDateString =
@@ -516,7 +548,7 @@ action.initialize();
 
 /**
  * @param {HTMLElement} el 
- * @param {EventListener} handler 
+ * @param {(e: MouseEvent) => void} handler 
  */
 function onClick(el, handler) {
     el.addEventListener('click', handler);

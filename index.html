@@ -15,20 +15,50 @@
             --gap: 4px;
             --color: black;
             --background: white;
+            --font-size: 14px;
+            --color-primary: #6082B6;
+            --color-archived: #bcbbbb;
+            --color-success: #3e8b3e;
+            --color-warn: #ed5045;
+            --color-background: rgb(230, 230, 230);
         }
+
         body.dark-theme {
-            --color: white;
+            --color: rgb(220, 220, 220);
             --background: black;
+            --color-archived: #919191;
         }
 
         * {
             box-sizing: border-box;
         }
 
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 8px;
+            background-color: var(--color-archived);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--color-primary);
+        }
+
+        :focus-visible {
+            outline: none;
+            border: var(--color-primary) solid 4px;
+        }
+
         html,
         body {
             margin: 0;
             height: 100%;
+            font-size: var(--font-size);
+        }
+
+        body,
+        button,
+        select {
+            font-family: monospace;
         }
 
         body {
@@ -39,6 +69,8 @@
             padding: var(--gap);
             color: var(--color);
             background-color: var(--background);
+            max-width: 600px;
+            margin: auto;
         }
 
         main {
@@ -47,82 +79,159 @@
             flex-direction: column;
             gap: var(--gap);
             overflow: auto;
+            padding-right: var(--gap);
+        }
+
+        dialog {
+            flex-direction: column;
+            gap: var(--gap);
+            min-width: 200px;
+            border-radius: var(--gap);
+        }
+
+        dialog[open] {
+            display: flex;
+        }
+
+        dialog::backdrop {
+            background-color: rgba(0, 0, 0, .8);
+        }
+
+        dialog h1 {
+            margin: auto;
+        }
+
+        dialog button {
+            max-width: unset;
+        }
+
+        footer nav {
+            display: flex;
+            justify-content: space-evenly;
+            padding: var(--gap);
+            gap: var(--gap);
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        p {
+            margin-top: var(--gap);
+            margin-bottom: var(--gap);
+        }
+
+        button,
+        select {
+            flex-grow: 1;
+            min-width: 70px;
+            max-width: 200px;
+            min-height: 32px;
+            font-size: var(--font-size);
+            border: none;
+            border-radius: var(--gap);
+            background-color: var(--color-background);
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        footer nav button,
+        footer nav select {
+            font-size: calc(var(--font-size) + 1px);
+        }
+
+        .favorite {
+            font-weight: bold;
+        }
+
+        .archived {
+            color: var(--color-archived);
+        }
+
+        .remove {
+            color: var(--color-warn);
         }
 
         article {
             display: flex;
             align-content: stretch;
             flex-direction: column;
-            gap: var(--gap);
+            gap: calc(var(--gap) - 2px);
         }
 
         article pre {
             display: inline-block;
             flex-grow: 1;
-            max-height: 250px;
+            max-height: 200px;
             overflow-y: auto;
             white-space: break-spaces;
             margin: 0;
             padding: var(--gap);
+            scrollbar-width: thin;
+            scrollbar-color: var(--color-primary) var(--color-archived);
         }
 
         article footer {
             display: none;
+            justify-content: space-evenly;
+        }
+
+        article button {
+            font-size: calc(var(--font-size) - 4px);
+            min-width: 60px;
         }
 
         article[selected] footer {
             display: flex;
-            gap: var(--gap);
-        }
-
-        article.important {
-            font-weight: bold;
-        }
-
-        article.archived {
-            color: gray;
-        }
-
-        dialog[open] {
-            display: flex;
-            flex-direction: column;
-            gap: var(--gap);
+            gap: calc(var(--gap) - 2px);
         }
     </style>
 </head>
 
 <body>
-    <main id="item-list">
-        <!-- TODO: try pages instead of scroll - left old, right new, like a book -->
-    </main>
+    <main id="item-list"></main>
 
     <footer>
         <nav>
-            <button id="btn-add">Add</button>
-            <button id="btn-options">Options</button>
-            <select id="slt-collections">
+            <button id="btn-add" title="Add new note">Add</button>
+            <button id="btn-options" title="Open options">Options</button>
+            <!-- TODO: replace with button and dialog -->
+            <select id="slt-collections" title="Choose collection">
                 <option disabled selected>Collections</option>
             </select>
         </nav>
     </footer>
 
     <dialog id="dlg-options">
-        <button id="btn-toggle-theme"></button>
-        <button id="btn-clear">Clear</button>
-        <button id="btn-export">Export</button>
-        <button id="btn-import">Import</button>
-        <button id="btn-options-close">Close</button>
+        <h1>Options</h1>
+        <button id="btn-toggle-theme" title="Choose theme"></button>
+        <button id="btn-clear" title="Remove all notes">Clear</button>
+        <button id="btn-export" title="Export notes">Export</button>
+        <button id="btn-import" title="Import notes">Import</button>
+        <button id="btn-about" title="About application">About</button>
+        <button id="btn-options-close" title="Close options">Close</button>
     </dialog>
 
     <dialog id="dlg-clear-confirm">
         <strong>Remove all notes?</strong>
-        <button id="btn-clear-confirm-ok">Ok</button>
-        <button id="btn-clear-confirm-cancel">Cancel</button>
+        <button id="btn-clear-confirm-ok" title="Ok">Ok</button>
+        <button id="btn-clear-confirm-cancel" title="Cancel">Cancel</button>
     </dialog>
 
     <dialog id="dlg-message">
         <strong id="txt-message"></strong>
-        <button id="btn-message-close">Close</button>
+        <button id="btn-message-close" title="Close message dialog">Close</button>
+    </dialog>
+
+    <dialog id="dlg-about">
+        <h1>Alesen Lite</h1>
+        <p>Simple note taking application</p>
+        <p><a href="https://alexarus.github.io/alesen-lite/" target="_blank">Web site</a></p>
+        <p><a href="https://github.com/AlexArus/alesen-lite" target="_blank">Source code</a></p>
+        <p>ArusSoft 2023</p>
+        <button id="btn-about-close" title="Close about application">Close</button>
     </dialog>
 </body>
 
