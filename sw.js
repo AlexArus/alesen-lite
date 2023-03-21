@@ -1,5 +1,5 @@
 const APP_PREFIX = "alesen-lite";
-const VERSION = "v23.03.19.18";
+const VERSION = "v23.03.21";
 const CACHE_NAME = APP_PREFIX + "_" + VERSION;
 const URLS = ["/alesen-lite/", "/alesen-lite/index.html", "/alesen-lite/main.js"];
 

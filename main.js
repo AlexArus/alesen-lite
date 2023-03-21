@@ -30,7 +30,7 @@ const typeEnum = {
 
 let maxId = 0;
 /** @type {Item[]} */
-const items = [];
+let items = [];
 /** @type {Map<number, Item>} */
 const itemsMap = new Map();
 
@@ -63,9 +63,9 @@ const getDialogById = id => {
 
 const main = getById('item-list');
 const btnAdd = getById('btn-add');
-const sltCollections = getById('slt-collections');
 const btnToggleTheme = getById('btn-toggle-theme');
-const btnClear = getById('btn-clear');
+const btnRemoveArchived = getById('btn-remove-archived');
+const btnRemoveAll = getById('btn-remove-all');
 const btnOptions = getById('btn-options');
 const btnExport = getById('btn-export');
 const btnImport = getById('btn-import');
@@ -74,12 +74,17 @@ const btnOptionsClose = getById('btn-options-close')
 const btnAboutClose = getById('btn-about-close');
 const dlgOptions = getDialogById('dlg-options');
 const dlgAbout = getDialogById('dlg-about');
-const dlgClearConfirm = getDialogById('dlg-clear-confirm');
-const btnClearConfirmOk = getById('btn-clear-confirm-ok');
-const btnClearConfirmCancel = getById('btn-clear-confirm-cancel');
 const dlgMessage = getDialogById('dlg-message');
 const btnMessageClose = getById('btn-message-close');
 const txtMessage = getById('txt-message');
+const dlgProm = getDialogById('dlg-promt');
+const txtPromtText = getById('txt-promt-text');
+const btnPromtOk = getById('btn-promt-ok');
+const btnPromtCancel = getById('btn-promt-cancel');
+const dlgCollections = getDialogById('dlg-collections');
+const btnAllCollections = getById('btn-all-collections');
+const sectionCollections = getById('section-collections');
+const btnCollections = getById('btn-collections');
 
 /**
  * @param {Event} e 
@@ -155,8 +160,10 @@ const itemArchiveHandler = e => {
 }
 /** @param {Event} e */
 const itemRemoveHandler = e => {
-    const id = getItemFromEvent(e).id;
-    action.removeItem(id);
+    action.showPromt('Remove notes?', () => {
+        const id = getItemFromEvent(e).id;
+        action.removeItem(id);
+    })
 }
 
 /** @type {string | null} */
@@ -226,25 +233,6 @@ const addItemEl = item => {
     return itemEl;
 }
 
-const updateCollectionsEl = () => {
-    const collections = new Set(items.flatMap(item => item.collections));
-    if (collections.size) {
-        sltCollections.innerHTML = '';
-        const option = document.createElement('option');
-        option.value = '';
-        option.innerText = 'All';
-        option.selected = !selectedCollection;
-        sltCollections.appendChild(option);
-        collections.forEach(collection => {
-            const option = document.createElement('option');
-            option.value = collection;
-            option.innerText = collection;
-            option.selected = collection === selectedCollection;
-            sltCollections.appendChild(option);
-        });
-    }
-}
-
 const applyCollectionFilter = () => {
     const articles = document.querySelectorAll('article');
     for (let i = 0; i < articles.length; i++) {
@@ -256,15 +244,49 @@ const applyCollectionFilter = () => {
     }
 }
 
+/** @param {Event} e */
+const selectCollection = (e) => {
+    const target = /** @type {HTMLButtonElement | null} */ (e.target);
+    if (target) {
+        selectedCollection = target.innerText;
+        btnCollections.innerText = target.innerText;
+        Array.from(target.parentElement?.children ?? []).forEach(element => {
+            if (element.textContent === selectedCollection) {
+                element.setAttribute('disabled', '');
+            } else {
+                element.removeAttribute('disabled');
+            }
+        });
+
+        applyCollectionFilter();
+    }
+    dlgCollections.close();
+}
+
+const updateCollectionsEl = () => {
+    const collections = new Set(items.flatMap(item => item.collections));
+    if (collections.size) {
+        sectionCollections.innerHTML = '';
+        collections.forEach(collection => {
+            const btnCollection = document.createElement('button');
+            btnCollection.title = collection;
+            btnCollection.innerText = collection;
+            btnCollection.onclick = selectCollection;
+            btnCollection.disabled = collection === selectedCollection;
+            sectionCollections.appendChild(btnCollection);
+        })
+    }
+}
+
 /** @param {MouseEvent} e */
 const dialogClickOutside = e => {
-    if(!e.target) return;
+    if (!e.target) return;
 
     const target = /** @type {HTMLDialogElement} */ (e.target);
     const rect = target.getBoundingClientRect();
     const x = e.clientX;
     const y = e.clientY;
-    const isClickInside = 
+    const isClickInside =
         rect.top <= y && y <= rect.top + rect.height &&
         rect.left <= x && x <= rect.left + rect.width;
 
@@ -286,22 +308,30 @@ const action = {
         onClick(btnOptions, () => dlgOptions.showModal());
         onClick(btnOptionsClose, () => dlgOptions.close());
         onClick(btnToggleTheme, action.toggleTheme);
-        onClick(btnClear, () => dlgClearConfirm.showModal());
-        onClick(btnClearConfirmOk, action.clearItems);
-        onClick(btnClearConfirmCancel, () => dlgClearConfirm.close());
+        onClick(btnRemoveArchived, () =>
+            action.showPromt('Remove archived notes?', action.removeArchivedItems)
+        );
+        onClick(btnRemoveAll, () =>
+            action.showPromt('Remove all notes?', action.removeAllItems)
+        );
         onClick(btnExport, action.export);
         onClick(btnImport, action.import);
         onClick(btnMessageClose, () => dlgMessage.close());
         onClick(btnAbout, () => dlgAbout.showModal());
         onClick(btnAboutClose, () => dlgAbout.close());
         onClick(dlgOptions, dialogClickOutside);
-        onClick(dlgClearConfirm, dialogClickOutside);
         onClick(dlgMessage, dialogClickOutside);
         onClick(dlgAbout, dialogClickOutside);
-        sltCollections.addEventListener('change', e => {
-            selectedCollection = ( /** @type {HTMLSelectElement} */ (e.target)).value ?? null;
+        onClick(dlgProm, dialogClickOutside);
+        onClick(btnCollections, () => dlgCollections.showModal());
+        onClick(dlgCollections, dialogClickOutside);
+        onClick(btnAllCollections, () => {
+            selectedCollection = null;
+            btnCollections.innerText = 'All';
             applyCollectionFilter();
-        })
+            dlgCollections.close();
+        });
+        onClick(btnPromtCancel, () => dlgProm.close());
     },
 
     loadSettings: () => {
@@ -381,7 +411,7 @@ const action = {
 
         updateCollectionsEl();
 
-        // lastEl?.querySelector('pre')?.focus();
+        lastEl?.querySelector('pre')?.focus();
     },
 
     /** @param {Item} item */
@@ -471,8 +501,24 @@ const action = {
         }
     },
 
-    clearItems: () => {
-        dlgClearConfirm.close();
+    removeArchivedItems: () => {
+        items = items.filter(item => {
+            if (item.type === typeEnum.archived) {
+                const itemElem = getById('item' + delimiter + item.id);
+                main.removeChild(itemElem);
+
+                itemsMap.delete(item.id);
+
+                action.deleteItemFromLocalStorage(item);
+
+                return false;
+            }
+            return true;
+        });
+        action.saveOrderToLocalStorage();
+    },
+
+    removeAllItems: () => {
         localStorage.clear();
         main.innerHTML = '';
         maxId = 0;
@@ -531,6 +577,21 @@ const action = {
     showMessage: message => {
         txtMessage.innerText = message;
         dlgMessage.showModal();
+    },
+
+    /** 
+     * @param {string} text 
+     * @param {Function} action
+     */
+    showPromt: (text, action) => {
+        txtPromtText.innerText = text;
+        dlgProm.showModal();
+        btnPromtOk.onclick = () => {
+            action();
+            dlgProm.close();
+            txtPromtText.innerText = '';
+            btnPromtOk.onclick = null;
+        }
     },
 
     toggleTheme: () => {

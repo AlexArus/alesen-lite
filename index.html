@@ -56,8 +56,7 @@
         }
 
         body,
-        button,
-        select {
+        button {
             font-family: monospace;
         }
 
@@ -123,12 +122,13 @@
             margin-bottom: var(--gap);
         }
 
-        button,
-        select {
+        button {
             flex-grow: 1;
+            display: grid;
+            place-items: center;
             min-width: 70px;
             max-width: 200px;
-            min-height: 32px;
+            min-height: 42px;
             font-size: var(--font-size);
             border: none;
             border-radius: var(--gap);
@@ -137,8 +137,7 @@
             cursor: pointer;
         }
 
-        footer nav button,
-        footer nav select {
+        footer nav button {
             font-size: calc(var(--font-size) + 1px);
         }
 
@@ -187,6 +186,12 @@
             display: flex;
             gap: calc(var(--gap) - 2px);
         }
+
+        #section-collections {
+            display: flex;
+            flex-direction: column;
+            gap: var(--gap);
+        }
     </style>
 </head>
 
@@ -195,34 +200,49 @@
 
     <footer>
         <nav>
-            <button id="btn-add" title="Add new note">Add</button>
-            <button id="btn-options" title="Open options">Options</button>
-            <!-- TODO: replace with button and dialog -->
-            <select id="slt-collections" title="Choose collection">
-                <option disabled selected>Collections</option>
-            </select>
+            <button id="btn-add" title="Add new note">
+                <svg height="18" width="18">
+                    <line x1="2" y1="9" x2="16" y2="9" stroke="black" stroke-width="4" stroke-linecap="round" />
+                    <line x1="9" y1="2" x2="9" y2="16" stroke="black" stroke-width="4" stroke-linecap="round" />
+                </svg>
+            </button>
+            <button id="btn-options" title="Open options">
+                <svg height="18" width="30">
+                    <circle cx="5" cy="9" r="3" />
+                    <circle cx="15" cy="9" r="3" />
+                    <circle cx="25" cy="9" r="3" />
+                </svg>
+            </button>
+
+            <button id="btn-collections" title="Collection filter">All</button>
         </nav>
     </footer>
 
     <dialog id="dlg-options">
         <h1>Options</h1>
         <button id="btn-toggle-theme" title="Choose theme"></button>
-        <button id="btn-clear" title="Remove all notes">Clear</button>
+        <button id="btn-remove-archived" title="">Remove archived</button>
+        <button id="btn-remove-all" title="Remove all notes">Remove all</button>
         <button id="btn-export" title="Export notes">Export</button>
         <button id="btn-import" title="Import notes">Import</button>
         <button id="btn-about" title="About application">About</button>
         <button id="btn-options-close" title="Close options">Close</button>
     </dialog>
 
-    <dialog id="dlg-clear-confirm">
-        <strong>Remove all notes?</strong>
-        <button id="btn-clear-confirm-ok" title="Ok">Ok</button>
-        <button id="btn-clear-confirm-cancel" title="Cancel">Cancel</button>
+    <dialog id="dlg-collections">
+        <button id="btn-all-collections" class="favorite">Show all</button>
+        <section id="section-collections"></section>
     </dialog>
 
     <dialog id="dlg-message">
         <strong id="txt-message"></strong>
         <button id="btn-message-close" title="Close message dialog">Close</button>
+    </dialog>
+
+    <dialog id="dlg-promt">
+        <strong id="txt-promt-text"></strong>
+        <button id="btn-promt-ok" title="Ok">Ok</button>
+        <button id="btn-promt-cancel" title="Cancel">Cancel</button>
     </dialog>
 
     <dialog id="dlg-about">
