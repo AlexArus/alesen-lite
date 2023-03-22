@@ -172,6 +172,14 @@
             scrollbar-color: var(--color-primary) var(--color-archived);
         }
 
+        article pre::first-letter {
+            font-size: xx-large;
+        }
+
+        article pre:empty {
+            border-bottom: var(--gap) solid var(--color-archived);
+        }
+
         article footer {
             display: none;
             justify-content: space-evenly;
