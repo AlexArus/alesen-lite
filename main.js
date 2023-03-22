@@ -160,7 +160,7 @@ const itemArchiveHandler = e => {
 }
 /** @param {Event} e */
 const itemRemoveHandler = e => {
-    action.showPromt('Remove notes?', () => {
+    action.showPromt('Remove note?', () => {
         const id = getItemFromEvent(e).id;
         action.removeItem(id);
     })
